@@ -69,21 +69,21 @@ top_games <- games %>% group_by(gamename) %>%  summarise(year_total_avg) %>% arr
               #nudge_x = -15, nudge_y =  0.3,
               color = yellow, family = "Press Start 2P", size = 3.5, hjust = 0.5) +
     
-    geom_segment(x = as.numeric(games$date[10]), xend = as.numeric(games$date[8]),
-                 y = 11.2, yend = 11.2, color = comment, linetype = 1) +
+    geom_segment(x = as.numeric(games$date[10]), xend = as.numeric(games$date[9]),
+                 y = 11.2, yend = 11.2, color = comment, linetype = 1, size = 0.5) +
     
     geom_segment(x = as.numeric(games$date[10]), xend = as.numeric(games$date[10]),
-                 y = 11.213, yend = 11.05, color = comment, linetype = 1) +
+                 y = 11.215, yend = 11.05, color = comment, linetype = 1, size = 0.5) +
     
-    geom_segment(x = as.numeric(games$date[8]), xend = as.numeric(games$date[8]),
-                 y = 11.213, yend = 11.05, color = comment, linetype = 1) +
+    geom_segment(x = as.numeric(games$date[9]), xend = as.numeric(games$date[9]),
+                 y = 11.215, yend = 11.05, color = comment, linetype = 1, size = 0.5) +
     
     annotate("text", 
-             x = as.Date("2020-04-01"), 
-             y = 11.6,
+             x = as.Date("2020-03-15"), 
+             y = 11.55,
              label = "Many countries entered\nCovid-19 lockdown",
              color = comment,
-             family = "OCR A Std", size = 3, lineheight = 0.9) +
+             family = "OCR A Std", size = 3.25, lineheight = 0.9) +
     
     
     labs(title = "DISTRIBUTION OF AVERAGE USERS PER \nMONTH FOR TOP 10 MOST POPULAR GAMES\nON STEAM IN 2020",
@@ -110,10 +110,10 @@ top_games <- games %>% group_by(gamename) %>%  summarise(year_total_avg) %>% arr
                                     lineheight = 1.2, 
                                     size = 16, 
                                     hjust = 0.5,
-                                    margin = margin(c(5,0,0,0))),
+                                    margin = margin(c(5,0,2,0))),
           plot.title.position = "panel",
           plot.subtitle  = element_text(color = orange, family = "OCR A Std", size = 10.5, lineheight = 1.1, margin = margin(7,0,17,0), hjust = 0.5),
-          plot.caption = element_text(family = "OCR A Std", size = 10.5, colour = orange)) + 
+          plot.caption = element_text(family = "OCR A Std", size = 9.5, colour = comment)) + 
     coord_cartesian(clip = "off") +
     NULL
 )
