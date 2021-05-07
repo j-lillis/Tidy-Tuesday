@@ -1,15 +1,12 @@
-
-#### rework with maps as facet - create period col in master data then facet on that - should
-#### solve issues with alignment
-
 library(tidyverse)
 library(urbnmapr)
 library(sf)
 library(patchwork)
 library(ggtext)
 library(extrafont)
+library(here)
 
-font_import()
+#font_import()
 
 #### DATA SETUP
 
@@ -29,7 +26,7 @@ discontinued_counts <- post_offices %>%
   count(discontinued)
 
 post_office_year_counts <- post_offices %>% count(established) %>% 
-  inner_join(., discontinued, by = c("established" = "discontinued" )) %>% 
+  inner_join(., discontinued_counts, by = c("established" = "discontinued" )) %>% 
   rename("established" = "n.x",
          "discontinued" = "n.y",
          "year" = "established") %>% 
@@ -59,18 +56,21 @@ grey_med <- "#C0C0C0"
 grey_med_dark <- "#989898"
 background <- "#f0efe4"
 
-font <- "NunitoSans-Bold"
-font_bold <- "NunitoSans-Black"
+font <- "Raleway-Medium"
+font_bold <- "Raleway-SemiBold"
 
-theme_update(plot.background = element_rect(fill = background),
+
+theme_update(plot.background = element_rect(fill = background, color = NA),
              plot.margin = margin(rep(5,4)))
 
 ####### FUNCTION TO GENERATE INDIVIDUAL MAPS AND BAR PLOTS 
 plot_period <- function(.data, period_to_plot){
   
   centre_lon = -115
-  centre_lat = 27
+  centre_lat = 26.5
   
+  min_period <- .data[[1]] %>% filter(period == period_to_plot) %>% 
+    summarise(min(established)) %>% pull()
   
   map_plot <- .data[[1]] %>% 
     drop_na(latitude) %>% 
@@ -85,19 +85,17 @@ plot_period <- function(.data, period_to_plot){
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           axis.title = element_blank(),
-          #plot.title = element_text(color = grey_accent, face = "bold", family = font, size = 25, hjust = 0.5,
-          #                          margin = margin(30,20,0,0)),
           panel.grid = element_blank(),
-          #plot.margin=grid::unit(c(0,0,0,0), "mm")
     ) +
     geom_point(aes(x = longitude, y = latitude), size = 0.5, alpha = 0.4, color = usps_blue) +
-    #labs(title = period_to_plot) +
-    coord_fixed(1.25) +
+    coord_fixed(1.25, clip = "off") +
     annotate(geom = "text", x = centre_lon, y = centre_lat, label = period_to_plot,
-             size = 12, fontface = "bold", colour = grey_med, alpha = 0.85)
+             size = 12, fontface = "bold", colour = grey_med, alpha = 0.8) +
+    annotate(geom = "text", x = centre_lon-8, y = centre_lat+4.5, label = paste0(min_period, "-"),
+             size = 8, fontface = "bold", colour = grey_med, alpha = 0.7)
   
   bar_plot <- .data[[2]] %>% filter(period == period_to_plot) %>% 
-    ggplot(aes(x = period, y = value, fill = name)) + geom_col() +
+    ggplot(aes(x = 0, y = value, fill = name)) + geom_col() +
     theme(panel.background  = element_rect(fill = background),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
@@ -108,17 +106,17 @@ plot_period <- function(.data, period_to_plot){
           panel.grid.minor.y = element_blank(),
           #plot.margin=grid::unit(c(0,0,0,0), "mm"),
           legend.position = "none") +
-    scale_fill_manual(values = c(usps_red, usps_blue)) + 
     geom_hline(yintercept = 0) +
+    scale_fill_manual(values = c(usps_red, usps_blue)) + 
     
-    coord_flip() + ylim(c(-3080,3080))
+    coord_flip(clip = "off") + ylim(c(-55000,71000))
   
-  print(map_plot / bar_plot + plot_layout(heights = c(15,1)))
+  
+  return(map_plot / bar_plot + plot_layout(heights = c(15,1)))
   
   
 }
 
-plot_period(post_offices_list, "1800")
 
 periods <- c("1800", "1825", "1850", "1875", "1900", "1925")
 
@@ -212,13 +210,13 @@ states_map <- us_map %>% left_join(., state_established, by = c("region" = "stat
         #plot.margin=grid::unit(c(0,0,0,0), "mm")
   )
 
-(state_timeline <- state_established %>% 
+state_timeline <- state_established %>% 
     group_by(established) %>% 
     mutate(rank = dense_rank(state_name)) %>% 
     ungroup() %>% 
     mutate(colour_code = ifelse(row_number() %% 2 == 0,1,0)) %>% 
     ggplot(aes(y = established, x = reorder(state, established), label = state)) +
-    geom_text(aes(colour = factor(colour_code)), size = 4, family = font_bold) +
+    geom_text(aes(colour = factor(colour_code)), size = 4, family = "Raleway-ExtraBold") +
     theme(axis.title = element_blank(),
           axis.text.x  = element_blank(),
           axis.ticks = element_blank(),
@@ -238,18 +236,21 @@ states_map <- us_map %>% left_join(., state_established, by = c("region" = "stat
     scale_color_manual(values = c(usps_blue, usps_red)) +
     scale_y_reverse(breaks = seq(1650, 1900, 25),
                     sec.axis = sec_axis(~., breaks = seq(1650, 1900, 25))) +
-    labs(subtitle   = "Year of first post office in each state") 
-)
+    labs(subtitle   = "Year the first post office was established in each state") 
+
 
 period_plots_merged <- (period_plots[[1]] | period_plots[[2]] | period_plots[[3]]) / 
-  (period_plots[[4]] | period_plots[[5]] | period_plots[[6]]) + 
-  plot_annotation(title = "") & 
-  theme(text = element_text(family = font, size = 30, color = grey_accent))
+  (period_plots[[4]] | period_plots[[5]] | period_plots[[6]])
 
 (period_plots_merged / state_timeline) + 
   plot_annotation(title = "A history of post offices in the United States",
-                  subtitle = "Each dot indicates a post office established up to the date shown<br>Bars show number of post offices <span style = 'color:#004B87;'>established</span> and <span style = 'color:#DA291C;'>discontinued</span> in period") & 
-  theme(plot.title  = element_text(family = font_bold, size = 40, color = grey_accent, margin = margin(10,40,5,20)),
-        plot.subtitle  = element_markdown(family = font, size = 20, color = grey_med_dark, lineheight = 1.2))
+                  subtitle = "Dots show total number of post offices established by the end of the period<br>Bars show number of post offices <span style = 'color:#004B87;'>established</span> and <span style = 'color:#DA291C;'>discontinued</span> within each period") & 
+  theme(plot.title  = element_text(family = font_bold, size = 48, color = grey_accent, margin = margin(10,40,7,20)),
+        plot.subtitle  = element_markdown(family = font_bold, size = 22, color = grey_med_dark, lineheight = 1.3),
+        panel.background  = element_rect(fill = background, color = NA))
+
+ggsave(filename =  paste0("temp-", format(Sys.time(), "%Y%m%d_%H%M%S"), ".png"), 
+       device = NULL, path = here("Temp plots"),
+       dpi = 320, width = 15, height = 10)
 
         
