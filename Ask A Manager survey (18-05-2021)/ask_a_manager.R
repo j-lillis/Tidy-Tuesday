@@ -1,7 +1,9 @@
 library(tidyverse)
 library(ggridges)
 library(patchwork)
+library(here)
 options(scipen = 999)
+
 
 df_import <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-05-18/survey.csv')
 
@@ -39,8 +41,6 @@ pay_gap_by_industry <- df_filt %>% group_by(industry, gender) %>%
 
 #### create plot function
 
-### TO DO: fix the sorting - it isn't working for some reason
-
 density_dumbbell_plot <- function(.data, y_var, sort = F) {
   
   y_var = enquo(y_var)
@@ -50,13 +50,16 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
     pivot_wider(names_from = gender, values_from = median_salary) %>% 
     rowwise() %>% 
     mutate(pay_gap = Man - Woman,
-           pay_gap_pct = (Man - Woman)/Woman)  %>% 
+           pay_gap_pct = (Man - Woman)/Woman,
+           y_var = factor(!!y_var))  %>% 
+    ungroup() %>% group_by(!!y_var) %>% 
+    mutate(text_location = median(c(Man, Woman)))  %>% 
     pivot_longer(c(Man, Woman), 
                  names_to = "gender",
-                 values_to = "annual_salary") 
+                 values_to = "annual_salary") %>% ungroup()
   
   plot_init <- if (sort == T) {
-    medians %>% ggplot(aes(x = annual_salary, y = reorder(factor(!!y_var), pay_gap_pct), 
+    medians %>% ggplot(aes(x = annual_salary, y = reorder(y_var, pay_gap_pct), 
                            fill = gender, colour = gender)) 
   } else  { medians %>% ggplot(aes(x = annual_salary, y = !!y_var, 
                                    fill = gender, colour = gender)) }
@@ -64,8 +67,7 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
   dumbbell_position <- position_nudge(x = 0, y = -0.1)
   
   plot_init +
-  
-    geom_line(aes(x = annual_salary, y = !!y_var, group = !!y_var),
+    geom_line(aes(x = annual_salary, group = y_var),
               position = dumbbell_position, color = "grey", size = 3) +
     
     stat_summary(
@@ -74,12 +76,12 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
       position = dumbbell_position) +
     
     geom_text( 
-              aes(label = round(pay_gap_pct*100,1), 
-                  x = ( max(annual_salary) - min(annual_salary)))) +
+      aes(label = round(pay_gap_pct*100,1), 
+          x = text_location)) +
     
     
     geom_density_ridges(data = .data, 
-                        aes(x = annual_salary, y = !!y_var, fill = gender, colour = gender),
+                        aes(x = mean(annual_salary), y = !!y_var, fill = gender, colour = gender),
                         
                         position = position_nudge(x = 0, y = 0.02), scale = 0.7, alpha = 0.3,
                         size = 1) +
@@ -87,52 +89,13 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
     xlim(c(0,250000))
 }
 
-df_filt %>% density_dumbbell_plot(how_old_are_you, sort = F)
+density_dumbbell_plot(df_filt, industry, sort = T)
 
 
-industry <- df_filt %>% group_by(industry, gender) %>% 
-  ggplot(aes(x = annual_salary, y = industry, colour = gender)) + 
-  geom_density_ridges(position = position_nudge(x = 0, y = 0.02), scale = 0.8, alpha = 0.3,
-                      size = 1) +
-  stat_summary(aes(y = industry),
-               geom = "point", fun = "median",
-               size = 3,
-               position = position_nudge(x = 0, y = -0.1)) +
-  scale_color_manual(values = c("red", "blue")) +
-  xlim(c(0,250000))
-
-education <- df_filt %>% group_by(highest_level_of_education_completed, gender) %>% 
-  ggplot(aes(x = annual_salary, y = highest_level_of_education_completed, colour = gender)) + 
-  geom_density_ridges(position = position_nudge(x = 0, y = 0.02), scale = 0.8, alpha = 0.3,
-                      size = 1) +
-  stat_summary(aes(y = highest_level_of_education_completed),
-               geom = "point", fun = "median",
-               size = 3,
-               position = position_nudge(x = 0, y = -0.1)) +
-  scale_color_manual(values = c("red", "blue")) +
-  xlim(c(0,250000))
-
-experience <- df_filt %>% group_by(years_of_experience_in_field, gender) %>% 
-  ggplot(aes(x = annual_salary, y = years_of_experience_in_field, colour = gender)) + 
-  geom_density_ridges(position = position_nudge(x = 0, y = 0.02), scale = 0.8, alpha = 0.3,
-                      size = 1) +
-  stat_summary(aes(y = years_of_experience_in_field),
-               geom = "point", fun = "median",
-               size = 3,
-               position = position_nudge(x = 0, y = -0.1)) +
-  scale_color_manual(values = c("red", "blue")) +
-  xlim(c(0,250000))
-
-age <- df_filt %>% group_by(how_old_are_you, gender) %>% 
-  ggplot(aes(x = annual_salary, y = how_old_are_you, colour = gender)) + 
-  geom_density_ridges(position = position_nudge(x = 0, y = 0.02), scale = 0.8, alpha = 0.3,
-                      size = 1) +
-  stat_summary(aes(y = how_old_are_you),
-               geom = "point", fun = "median",
-               size = 3,
-               position = position_nudge(x = 0, y = -0.1)) +
-  scale_color_manual(values = c("red", "blue")) +
-  xlim(c(0,250000))
 
 
 (education | experience) / (industry | age)
+
+ggsave(filename =  paste0("temp-", format(Sys.time(), "%Y%m%d_%H%M%S"), ".png"), 
+       device = NULL, path = here("Temp plots"),
+       dpi = 320, width = 20, height = 12)
