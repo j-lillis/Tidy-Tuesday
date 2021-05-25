@@ -38,6 +38,8 @@ pay_gap_by_industry <- df_filt %>% group_by(industry, gender) %>%
   mutate(pay_gap = Man - Woman) %>% 
   mutate(industry = fct_reorder(industry, pay_gap))
 
+# colours
+background <- "white"
 
 #### create plot function
 
@@ -63,30 +65,28 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
                            fill = gender, colour = gender)) 
   } else  { medians %>% ggplot(aes(x = annual_salary, y = !!y_var, 
                                    fill = gender, colour = gender)) }
+
   
   dumbbell_position <- position_nudge(x = 0, y = -0.1)
   
   plot_init +
     geom_line(aes(x = annual_salary, group = y_var),
               position = dumbbell_position, color = "grey", size = 3) +
-    
     stat_summary(
       geom = "point", fun = "median",
       size = 5,
       position = dumbbell_position) +
-    
     geom_text( 
       aes(label = round(pay_gap_pct*100,1), 
           x = text_location)) +
-    
-    
     geom_density_ridges(data = .data, 
-                        aes(x = mean(annual_salary), y = !!y_var, fill = gender, colour = gender),
+                        aes(x = annual_salary, y = !!y_var, fill = gender, colour = gender),
                         
                         position = position_nudge(x = 0, y = 0.02), scale = 0.7, alpha = 0.3,
                         size = 1) +
+    xlim(c(0,250000)) +
     
-    xlim(c(0,250000))
+    theme()
 }
 
 density_dumbbell_plot(df_filt, industry, sort = T)
