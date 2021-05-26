@@ -1,13 +1,14 @@
-library(tidyverse)
 library(ggridges)
 library(patchwork)
-library(wesanderson)
+library(tidyverse)
 library(ghibli)
+library(ggtext)
+library(extrafont)
 library(here)
-options(scipen = 999)
 
-
-#### to do: add fonts, add titles + subtitles, add scales formatting to x axis, add caption, 
+#### to do: add fonts, add titles + subtitles (use element_markdown to include these both within subtitle),
+# add scales formatting to x axis, add caption, 
+# convert currencies to USD
 # use geom_text to add in base size for each density ???
 
 df_import <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-05-18/survey.csv')
@@ -43,14 +44,23 @@ df_filt <- df_import %>%
                                          "College degree",
                                          "Professional degree (MD, JD, etc.)",
                                          "Master's degree",
-                                         "PhD")))
+                                         "PhD"))) %>% 
+  
+  # currency exchange rates taken from xe.com for 09/05/2021
+  mutate(annual_salary = case_when(currency == "CAD" ~ annual_salary * 0.8238345533,
+                                   currency == "GBP" ~ annual_salary * 1.3989316868,
+                                   TRUE ~ annual_salary))
 
 
-# colours
+# plot setup
+
 background <- "black"
 text_colour <- ghibli_palettes$PonyoLight[2]
 yellow <- ghibli_palettes$PonyoMedium[6]
 blue <- ghibli_palettes$PonyoMedium[3]
+
+font_bold <- "Roboto-Bold"
+font_regular <- "Roboto-Regular"
 #### create plot function
 
 density_dumbbell_plot <- function(.data, y_var, sort = F) {
@@ -106,7 +116,8 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
       aes(label = paste0("+", round(pay_gap_pct*100,0), "%"), 
           x = text_location),
       position = text_pct_position,
-      colour = alpha(yellow, 0.3)) +
+      colour = alpha(yellow, 0.5),
+      family = font_regular) +
     xlim(c(0,250000)) +
     
     scale_fill_manual(values = c(yellow, blue),
@@ -114,35 +125,72 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
     
     scale_y_discrete(labels = function(x) str_wrap(x, width = 10)) +
     
+    scale_x_continuous()
+    
     
     theme(plot.background  = element_rect(fill = background, colour = background),
           panel.background = element_rect(fill = background, colour = background),
           axis.text.y = element_text(size = 12, 
                                      colour = alpha(text_colour, 0.6),
-                                     margin = margin(r = -20),
-                                     hjust = 0.5),
+                                     margin = margin(r = -15),
+                                     hjust = 0.5,
+                                     family = font_regular),
           axis.text.x = element_text(size = 12, 
                          colour = alpha(text_colour, 0.5),
-                         hjust = 0.5),
+                         hjust = 0.5,
+                         family = font_regular),
           axis.ticks = element_blank(),
           axis.title = element_blank(),
           panel.grid.major.y = element_blank(),
           panel.grid.major.x = element_line(colour = alpha(ghibli_palettes$PonyoMedium[2], 0.1), size = 1.5),
           panel.grid.minor.x = element_blank(),
           panel.grid.minor.y = element_blank(),
-          #plot.margin=grid::unit(c(0,0,0,0), "mm"),
+          
+          plot.subtitle = element_markdown(colour = text_colour, size = 20, family = font_regular,
+                                           margin = margin(0,0,20,0)),
+          
+          plot.title.position = "plot",
+          plot.margin = grid::unit(c(5,5,10,10), "mm"),
           legend.position = "none") +
     
     coord_cartesian(clip = "off")
 }
 
-density_dumbbell_plot(df_filt, experience, sort = F)
 
-density_dumbbell_plot(df_filt, age) + density_dumbbell_plot(df_filt, experience) +
-  density_dumbbell_plot(df_filt %>% filter(industry %in% top_6_industries), industry, sort = T) + density_dumbbell_plot(df_filt, education) +
-  plot_layout(ncol = 2)
+(age <- density_dumbbell_plot(df_filt, age) + 
+    labs(subtitle = "Age:"))
 
+(experience <- density_dumbbell_plot(df_filt, experience) + 
+    labs(subtitle = "Years of experience in professional field:"))
+
+(industry <- density_dumbbell_plot(df_filt %>% filter(industry %in% top_6_industries), industry, sort = T) + 
+  labs(subtitle = "Industry:"))
+
+(education <- density_dumbbell_plot(df_filt, education) + 
+    labs(subtitle = "Highest level of education attained:"))
+
+age + experience + industry + education + plot_layout(ncol = 2) +
+  plot_annotation(title = "test") &
+  theme(plot.background = element_rect(fill = background, colour = NA),
+        plot.title = element_markdown(colour = text_colour, family = font_bold, size = 30))
 
 ggsave(filename =  paste0("temp-", format(Sys.time(), "%Y%m%d_%H%M%S"), ".png"), 
        device = NULL, path = here("Temp plots"),
-       dpi = 320, width = 18, height = 12)
+       dpi = 320, width = 14, height = 12)
+
+
+tribble(~annual_salary, ~gender, ~fake_var
+        )
+
+male_dist <- seq(-4,4,length = 1000)
+female_dist <- seq(-5,3, length = 1000) 
+
+dummy_dists <- tibble(annual_salary = c(dnorm(n = 1000,mean=50000,sd=5),
+                         rnorm(n=1000,mean=20000,sd=5)), 
+       gender = factor(c(rep("Man", 1000), rep("Woman", 1000))),
+       var_z = rep("1", 2000))
+
+
+dummy_dists %>% density_dumbbell_plot(y_var = var_z)
+    dummy_dists %>% group_by(gender)
+       
