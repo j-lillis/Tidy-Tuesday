@@ -63,7 +63,7 @@ font_bold <- "Roboto-Bold"
 font_regular <- "Roboto-Regular"
 #### create plot function
 
-density_dumbbell_plot <- function(.data, y_var, sort = F) {
+density_dumbbell_plot <- function(.data, y_var, sort = F, pct_change_text = T) {
   
   y_var = enquo(y_var)
   
@@ -112,20 +112,21 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
                         position = position_nudge(x = 0, y = 0.02), scale = 0.7, alpha = 0.3,
                         size = 1) +
     
-    geom_text( 
-      aes(label = paste0("+", round(pay_gap_pct*100,0), "%"), 
-          x = text_location),
-      position = text_pct_position,
-      colour = alpha(yellow, 0.5),
-      family = font_regular) +
+    { if(pct_change_text == TRUE) 
+      
+      geom_text( 
+        aes(label = paste0("+", round(pay_gap_pct*100,0), "%"), 
+            x = text_location),
+        position = text_pct_position,
+        colour = alpha(yellow, 0.5),
+        family = font_regular) } +
+    
     xlim(c(0,250000)) +
     
     scale_fill_manual(values = c(yellow, blue),
                       aesthetics = c("colour", "fill")) +
     
     scale_y_discrete(labels = function(x) str_wrap(x, width = 10)) +
-    
-    scale_x_continuous()
     
     
     theme(plot.background  = element_rect(fill = background, colour = background),
@@ -136,9 +137,9 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
                                      hjust = 0.5,
                                      family = font_regular),
           axis.text.x = element_text(size = 12, 
-                         colour = alpha(text_colour, 0.5),
-                         hjust = 0.5,
-                         family = font_regular),
+                                     colour = alpha(text_colour, 0.5),
+                                     hjust = 0.5,
+                                     family = font_regular),
           axis.ticks = element_blank(),
           axis.title = element_blank(),
           panel.grid.major.y = element_blank(),
@@ -157,6 +158,48 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
 }
 
 
+
+tribble(~annual_salary, ~gender, ~fake_var
+)
+
+male_dist <- seq(-4,4,length = 1000)
+female_dist <- seq(-5,3, length = 1000) 
+
+reps <- 1000000
+
+dummy_dists <- tibble(annual_salary = c(rnorm(reps,3),
+                                        rnorm(reps,2.2)), 
+                      gender = factor(c(rep("Man", reps), rep("Woman", reps))),
+                      var_z = rep(reps*2))
+
+
+legend <- dummy_dists %>%  density_dumbbell_plot(y_var = var_z, pct_change_text = F) + xlim(c(-1,6))
+
+y_position = nrow(dummy_dists) - 0.1
+
+(legend_annotated <- legend + 
+    
+    geom_text( 
+  aes(label = "Percentage gap\nbetween medians"),
+      x = 2.6,
+  position = position_nudge(x = 0, y = -0.3),
+  colour = alpha(yellow, 0.5),
+  family = font_regular) +
+  
+  geom_curve(aes(x = 2, xend = 0.5, y = y_position, yend = y_position - 0.2),
+             curvature = 0.3, color = blue) +
+    
+  annotate("text", x = 1, y = y_position - 0.4, label = "Median female salary", color = blue) +
+  
+  geom_curve(aes(x = 4.7, xend = 3.2, y = y_position - 0.2, yend = y_position),
+             curvature = 0.3, color = yellow) +
+    
+    labs(subtitle = "How to read the plots:") +
+    
+    theme(axis.text.x  = element_blank(),
+          plot.margin = grid::unit(c(0,5,0,10), "mm")))
+
+
 (age <- density_dumbbell_plot(df_filt, age) + 
     labs(subtitle = "Age:"))
 
@@ -164,7 +207,7 @@ density_dumbbell_plot <- function(.data, y_var, sort = F) {
     labs(subtitle = "Years of experience in professional field:"))
 
 (industry <- density_dumbbell_plot(df_filt %>% filter(industry %in% top_6_industries), industry, sort = T) + 
-  labs(subtitle = "Industry:"))
+    labs(subtitle = "Industry:"))
 
 (education <- density_dumbbell_plot(df_filt, education) + 
     labs(subtitle = "Highest level of education attained:"))
@@ -174,23 +217,21 @@ age + experience + industry + education + plot_layout(ncol = 2) +
   theme(plot.background = element_rect(fill = background, colour = NA),
         plot.title = element_markdown(colour = text_colour, family = font_bold, size = 30))
 
+layout <- "
+####AA
+BBBCCC
+BBBCCC
+DDDEEE
+DDDEEE
+"
+
+legend_annotated + age + experience + industry + education + plot_layout(design = layout) +
+  plot_annotation(title = "test") &
+  theme(plot.background = element_rect(fill = background, colour = NA),
+        plot.title = element_markdown(colour = text_colour, family = font_bold, size = 30)) 
+
+
 ggsave(filename =  paste0("temp-", format(Sys.time(), "%Y%m%d_%H%M%S"), ".png"), 
        device = NULL, path = here("Temp plots"),
-       dpi = 320, width = 14, height = 12)
+       dpi = 320, width = 14, height = 16)
 
-
-tribble(~annual_salary, ~gender, ~fake_var
-        )
-
-male_dist <- seq(-4,4,length = 1000)
-female_dist <- seq(-5,3, length = 1000) 
-
-dummy_dists <- tibble(annual_salary = c(dnorm(n = 1000,mean=50000,sd=5),
-                         rnorm(n=1000,mean=20000,sd=5)), 
-       gender = factor(c(rep("Man", 1000), rep("Woman", 1000))),
-       var_z = rep("1", 2000))
-
-
-dummy_dists %>% density_dumbbell_plot(y_var = var_z)
-    dummy_dists %>% group_by(gender)
-       
