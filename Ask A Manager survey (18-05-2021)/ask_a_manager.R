@@ -27,13 +27,14 @@ df_filt <- df_import %>%
                                                      "21 years or more" = c("21 - 30 years",
                                                                             "31 - 40 years",
                                                                             "41 years or more"))) %>% 
+  mutate(years_of_experience_in_field = str_replace_all(years_of_experience_in_field, " - ", "–")) %>% 
   mutate(age = fct_rev(str_replace_all(how_old_are_you, "-", "–")),
          experience = fct_rev(fct_relevel(years_of_experience_in_field,
                                           "1 year or less",
-                                          "2 - 4 years",
-                                          "5 - 7 years",
-                                          "8 - 10 years",
-                                          "11 - 20 years",
+                                          "2–4 years",
+                                          "5–7 years",
+                                          "8–10 years",
+                                          "11–20 years",
                                           "21 years or more")),
          education = fct_rev(fct_relevel(highest_level_of_education_completed,
                                          "High School",
@@ -42,8 +43,6 @@ df_filt <- df_import %>%
                                          "Professional degree (MD, JD, etc.)",
                                          "Master's degree",
                                          "PhD"))) %>% 
-  
-  mutate(experience = fct_rev(str_replace_all(how_old_are_you, "-", "–"))) %>% 
   
   # currency exchange rates taken from xe.com for 09/05/2021
   mutate(annual_salary = case_when(currency == "CAD" ~ annual_salary * 0.8238345533,
