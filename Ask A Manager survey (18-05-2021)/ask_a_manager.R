@@ -27,7 +27,7 @@ df_filt <- df_import %>%
                                                      "21 years or more" = c("21 - 30 years",
                                                                             "31 - 40 years",
                                                                             "41 years or more"))) %>% 
-  mutate(age = fct_rev(str_replace_all(how_old_are_you, "-", " - ")),
+  mutate(age = fct_rev(str_replace_all(how_old_are_you, "-", "–")),
          experience = fct_rev(fct_relevel(years_of_experience_in_field,
                                           "1 year or less",
                                           "2 - 4 years",
@@ -42,6 +42,8 @@ df_filt <- df_import %>%
                                          "Professional degree (MD, JD, etc.)",
                                          "Master's degree",
                                          "PhD"))) %>% 
+  
+  mutate(experience = fct_rev(str_replace_all(how_old_are_you, "-", "–"))) %>% 
   
   # currency exchange rates taken from xe.com for 09/05/2021
   mutate(annual_salary = case_when(currency == "CAD" ~ annual_salary * 0.8238345533,
@@ -254,7 +256,7 @@ legend_annotated <- dummy_dists %>%
 
 intro_text <- ggplot() +
   geom_textbox(aes(x = -3, y = 1, 
-                   label = "The **Ask A Manager Survey** collected information on salaries in April - May 2021.<br><br>
+                   label = "The **Ask A Manager Survey** collected information on salaries in April–May 2021.<br><br>
                 Data presented here only includes respondents who provided their salary in USD, CAD, or GBP — these were then standardised to USD. Respondents were filtered to only include <span style = 'color:#278B9AFF;'>**women**</span> and <span style = 'color:#D8AF39FF;'>**men**</span> over the age of 18.<br><br>
                 X axis is limited to $250,000 for clarity although maximum salaries exceed this. *n*=23,714 except for the **Industry** plot, which only shows responses for the six most popular industries (*n*=12,876)."), 
                family = "Roboto", size = 4.5, 
