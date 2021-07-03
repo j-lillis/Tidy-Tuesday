@@ -135,7 +135,7 @@ density_dumbbell_plot <- function(.data, y_var, sort = F, pct_change_text = T) {
                                      colour = alpha(text_colour, 0.7),
                                      margin = margin(r = -15),
                                      hjust = 0.5,
-                                     family = font_regular),
+                                     family = font_regular, lineheight = 1),
           axis.text.x = element_text(size = 12, 
                                      colour = alpha(text_colour, 0.2),
                                      hjust = 0.5,
@@ -210,28 +210,28 @@ legend_annotated <- dummy_dists %>%
              curvature = 0.2,
              arrow = arrow(length = unit(0.03, "npc")),
              color = text_colour) +
-  annotate("text", x = female_x, y = y_position_pos + 0.7, label = "Female\nsalary\ndistribution", color = blue) +
+  annotate("text", x = female_x, y = y_position_pos + 0.7, label = "Female\nsalary\ndistribution", color = blue, lineheight = 1) +
   
   # male distribution
   geom_curve(aes(x = male_x, xend = male_x - x_difference + 0.7, y = y_position_pos + y_raise, yend = y_position_pos),
              curvature = -0.2, 
              arrow = arrow(length = unit(0.03, "npc")),
              color = text_colour) +
-  annotate("text", x = male_x, y = y_position_pos + 0.7, label = "Male\nsalary\ndistribution", color = yellow) +
+  annotate("text", x = male_x, y = y_position_pos + 0.7, label = "Male\nsalary\ndistribution", color = yellow, lineheight = 1) +
   
   # female median
   geom_curve(aes(x = female_x, xend = female_x + x_difference, y = y_position_neg - y_drop, yend = y_position_neg),
              curvature = -0.4,
              arrow = arrow(length = unit(0.03, "npc")),
              color = text_colour) +
-  annotate("text", x = female_x, y = y_position_neg - 0.7, label = "Median\nfemale\nsalary", color = blue) +
+  annotate("text", x = female_x, y = y_position_neg - 0.7, label = "Median\nfemale\nsalary", color = blue, lineheight = 1) +
   
   # male median
   geom_curve(aes(x = male_x , xend = male_x - x_difference, y = y_position_neg - y_drop, yend = y_position_neg),
              curvature = 0.4, 
              arrow = arrow(length = unit(0.03, "npc")),
              color = text_colour) +
-  annotate("text", x = male_x, y = y_position_neg - 0.7, label = "Median\nmale\nsalary", color = yellow) +
+  annotate("text", x = male_x, y = y_position_neg - 0.7, label = "Median\nmale\nsalary", color = yellow, lineheight = 1) +
   
   # pct change
   geom_curve(aes(x = 2.7, xend = 2.7, y = y_position_neg -1, yend = y_position_neg - 0.3),
@@ -239,7 +239,7 @@ legend_annotated <- dummy_dists %>%
              arrow = arrow(length = unit(0.03, "npc")),
              color = text_colour) +
   annotate("text", x = 2.7, y = y_position_neg - 1.3, 
-           label = "Percentage difference\n between male and\nfemale median", color = text_colour) +
+           label = "Percentage difference\n between male and\nfemale median", color = text_colour, lineheight = 1) +
   
   annotate("text", x = 2.7, y = nrow(dummy_dists) + 1.7, 
            label = "How to read\nthe plots:", color = text_colour, size = 7, family = font_regular,
