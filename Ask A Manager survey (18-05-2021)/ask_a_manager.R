@@ -221,14 +221,14 @@ legend_annotated <- dummy_dists %>%
   
   # female median
   geom_curve(aes(x = female_x, xend = female_x + x_difference, y = y_position_neg - y_drop, yend = y_position_neg),
-             curvature = -0.4,
+             curvature = -0.3,
              arrow = arrow(length = unit(0.03, "npc")),
              color = text_colour) +
   annotate("text", x = female_x, y = y_position_neg - 0.7, label = "Median\nfemale\nsalary", color = blue, lineheight = 1) +
   
   # male median
   geom_curve(aes(x = male_x , xend = male_x - x_difference, y = y_position_neg - y_drop, yend = y_position_neg),
-             curvature = 0.4, 
+             curvature = 0.3, 
              arrow = arrow(length = unit(0.03, "npc")),
              color = text_colour) +
   annotate("text", x = male_x, y = y_position_neg - 0.7, label = "Median\nmale\nsalary", color = yellow, lineheight = 1) +
