@@ -29,10 +29,11 @@ plot <- animal_rescues_import %>%
         plot.margin = unit(c(2,20,4,10),"mm"),
         axis.text.y = element_text(color = grey, family = font, face = "bold"),
         axis.ticks.length.y = unit(9, "mm"),
-        strip.text = element_text(size = 14, margin = margin(8,0,8,0), color = grey, family = font, face = "bold"),
+        strip.text = element_text(size = 14, margin = margin(8,0,8,0), 
+                                  color = grey, family = font, face = "bold"),
         plot.background   = element_rect(colour = "white", size = 3, fill = "#F5F5F5"),
-        plot.caption = element_text(colour = alpha(grey, 0.5), size = 8, hjust = 1),
-        plot.caption.position = "panel") +
+        plot.caption = element_text(colour = alpha(grey, 0.5), size = 8, hjust = 1, family = font),
+        plot.caption.position = "plot") +
   coord_cartesian(clip = "off")
 
 
@@ -45,7 +46,7 @@ ggdraw(plot) + draw_label("London Fire Brigade animal rescues", x = label_x, y =
                       Each plot shows the total number of rescues in each year from 2009 to 2020 for the five most rescued animals.", 86),
             x = label_x + 0.0025, y = label_y - 0.1, fontfamily  = font, lineheight = 1.01, hjust = 0, size = 12) +
   
-  draw_label("2009", x = 0.105, y = 0.15, size = 10, fontfamily = font, fontface = "bold", colour = alpha(grey, 0.6)) +
+  draw_label("2009", x = 0.104, y = 0.15, size = 10, fontfamily = font, fontface = "bold", colour = alpha(grey, 0.6)) +
   draw_label("2020", x = 0.224, y = 0.15, size = 10, fontfamily = font, fontface = "bold", colour = alpha(grey, 0.6))
   
 #save to temp plots file
@@ -56,3 +57,4 @@ ggdraw(plot) + draw_label("London Fire Brigade animal rescues", x = label_x, y =
 ggsave(filename = "animal_resuces_plot.png",
        path = here::here("Animal Rescues (29-06-2021)"),
        dpi = 320, width = 10, height = 5)
+
