@@ -3,14 +3,16 @@ library(lubridate)
 library(extrafont)
 library(cowplot)
 
+# import
 animal_rescues_import <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-29/animal_rescues.csv') %>% 
   mutate(animal_group_parent = paste0(animal_group_parent, if_else(animal_group_parent == "Fox", "es", "s")))
 
+# set up colours and font
 red <- "#d52b1f"
 grey <- "#636b6e"
 font <- "Lato"
 
-
+# create plot
 plot <- animal_rescues_import %>% 
   mutate(animal_group_parent = fct_lump(factor(animal_group_parent), 5)) %>% 
   
@@ -36,10 +38,11 @@ plot <- animal_rescues_import %>%
         plot.caption.position = "plot") +
   coord_cartesian(clip = "off")
 
-
+# set coords for title and subtitle
 label_x <- 0.34
 label_y <- 0.9
 
+# assemble plot, title and subtitle, and x axis labels for first plot
 ggdraw(plot) + draw_label("London Fire Brigade animal rescues", x = label_x, y = label_y, 
                           colour = red, size = 28.2,
                           fontfamily  = font, fontface = "bold", hjust = 0) +
@@ -47,19 +50,11 @@ ggdraw(plot) + draw_label("London Fire Brigade animal rescues", x = label_x, y =
                       Each plot shows the total number of rescues in each year from 2009 to 2020 for the five most rescued animals.", 86),
             x = label_x + 0.0025, y = label_y - 0.1, fontfamily  = font, lineheight = 1.01, hjust = 0, size = 12, colour = "black") +
   
-  #draw_label(str_wrap("The plot to the right shows total number of rescues for the period by month.", 50),
-  #           x = label_x + 0.2, y = label_y - 0.2, fontfamily  = font, lineheight = 1.01, hjust = 0, size = 12, colour = "black") +
-  
   draw_label("2009", x = 0.107, y = 0.15, size = 10, fontfamily = font, fontface = "bold", colour = alpha(grey, 0.6)) +
   draw_label("2020", x = 0.233, y = 0.15, size = 10, fontfamily = font, fontface = "bold", colour = alpha(grey, 0.6)) +
   NULL
-  
 
-#save to temp plots file
-#ggsave(filename =  paste0("temp-", format(Sys.time(), "%Y%m%d"), ".png"), 
-#       device = NULL, path = here::here("Temp plots"),
-#       dpi = 320, width = 10, height = 5)
-
+# save plot
 ggsave(filename = "animal_rescues_plot.png",
        path = here::here("Animal Rescues (29-06-2021)"),
        dpi = 600, width = 10, height = 5)
