@@ -5,7 +5,7 @@ These are plots I have created as part of The [#TidyTuesday](https://github.com/
 
 ## London Fire Brigade - animal rescues (29-06-2021)
 
-My previous two plots had been quite "busy", so I wanted to create a clean and simple visualisation for this data.
+My previous two plots had been quite "busy", so I wanted to create a clean and simple visualisation which made the most of the striking LFB red.
 
 ![London Fire Brigade - animal rescues](https://raw.githubusercontent.com/j-lillis/Tidy-Tuesday/main/Animal%20Rescues%20(29-06-2021)/animal_rescues_plot.png)
 
