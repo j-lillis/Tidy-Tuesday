@@ -12,6 +12,6 @@ Tidy Tuesday
 
 # Steam (16-03-2021)
 
-![Steam plot](httpshttps://raw.githubusercontent.com/j-lillis/Tidy-Tuesday/main/Steam%20(16-03-2021)/steam_plot.png)
+![Steam plot](https://raw.githubusercontent.com/j-lillis/Tidy-Tuesday/main/Steam%20(16-03-2021)/steam_plot.png)
 
 
