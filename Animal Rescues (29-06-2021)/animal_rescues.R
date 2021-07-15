@@ -60,9 +60,9 @@ ggdraw(plot) + draw_label("London Fire Brigade animal rescues", x = label_x, y =
 #       device = NULL, path = here::here("Temp plots"),
 #       dpi = 320, width = 10, height = 5)
 
-ggsave(filename = "animal_resuces_plot_bar.png",
+ggsave(filename = "animal_rescues_plot.png",
        path = here::here("Animal Rescues (29-06-2021)"),
-       dpi = 320, width = 10, height = 5)
+       dpi = 600, width = 10, height = 5)
 
 
 
