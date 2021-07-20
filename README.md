@@ -1,6 +1,6 @@
 Tidy Tuesday
 ================
-These are plots I have created as part of the [#TidyTuesday](https://github.com/rfordatascience/tidytuesday) project. I have used each plot as an opportunity to explore different visualisation techniques, design principles, and ggplot2 functionality. You can view code for all plots in the respective folders at the top of this page.
+These are plots I have created as part of the [#TidyTuesday](https://github.com/rfordatascience/tidytuesday) project. Every plot is created entirely in R with no use of image editing software. I have used each plot as an opportunity to explore different visualisation techniques, design principles, and ggplot2 functionality. Click a plot to view a full resolution version, and view underlying R code in the respective folders at the top of this page.
 
 
 ## London Fire Brigade - animal rescues (29-06-2021)
