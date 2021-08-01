@@ -4,7 +4,7 @@ These are plots I have created as part of the [#TidyTuesday](https://github.com/
 
 ## US Droughts (20-07-2021)
 
-It took some experimentation to settle on a key measure which aggregated weekly figures across multiple categories - for each week, I identified the highest drought category which covered at least 10% of a state, then counted the number of weeks that each category was the highest in a year. I used the `{geofacet}` package which allowed me to show change over time for each state while still illustrating the geographical relationship between states. For this plot I did final touches in Inkscape, including adding axis lines and axis text.
+It took some experimentation to settle on a key measure which aggregated weekly figures across multiple categories - for each week, I identified the highest drought category which covered at least 10% of a state, then counted the number of weeks that each category was the highest in a year. I used the `{geofacet}` package which allowed me to show change over time for each state while still illustrating the geographical relationship between states. For this plot I did final touches in Inkscape, including adding axis lines and annotation.
 
 ![US Droughts](https://raw.githubusercontent.com/j-lillis/Tidy-Tuesday/main/US%20Droughts%20(20-07-2021)/us_droughts_plot.png)
 
