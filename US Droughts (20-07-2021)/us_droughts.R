@@ -1,19 +1,11 @@
-
-
-# TO DO:
-
-# - fix area plot dates and x axis text,
-# - move area plot title down slightly
-# - annotations
-
-
-
 library(tidyverse)
 library(geofacet)
 library(lubridate)
 library(patchwork)
 library(extrafont)
 library(ggtext)
+
+# state lookup and update geofacet grid names
 
 state_lookup <- tibble::tribble(~state_name, ~state_abb,
                                 "ALABAMA",  "AL",
@@ -71,8 +63,7 @@ state_lookup <- tibble::tribble(~state_name, ~state_abb,
                                 "WASHINGTON", "WA",
                                 "WEST VIRGINIA", "WV",
                                 "WISCONSIN", "WI",
-                                "WYOMING", "WY"
-) %>% 
+                                "WYOMING", "WY") %>% 
   mutate(state_name = str_to_title(state_name)) %>% 
   mutate(state_name = case_when(state_name == "District Of Columbia" ~ "D.C.",
                                 state_name == "New Hampshire" ~ "N. Hampshire",
@@ -82,6 +73,7 @@ us_grid <- us_state_grid2 %>% mutate(name = case_when(code == "DC" ~ "D.C.",
                                                       code == "NH" ~ "N. Hampshire",
                                                       TRUE ~ name))
 
+# import state-level data
 drought_import <- readr::read_csv(here::here('US Droughts (20-07-2021)', 'droughts_data.csv')) %>% 
   janitor::clean_names() %>% 
   #pivot_longer(cols = c(none:d4), names_to = 'drought_lvl', values_to = 'area_pct') %>% 
@@ -89,9 +81,6 @@ drought_import <- readr::read_csv(here::here('US Droughts (20-07-2021)', 'drough
   mutate(year = year(valid_start)) %>% 
   left_join(., state_lookup) 
 
-
-
-View(drought_import)
 
 # plot setup
 font_reg <- "Roboto Slab"
@@ -101,10 +90,7 @@ font_bold <- "Roboto Slab Medium"
 grey <- "#717169"
 light_grey <- "#91918a"
 
-fill_scale <- #viridis::inferno(15)[c(6, 8, 10, 12, 14)]
-  #heat.colors(5)
-  RColorBrewer::brewer.pal(6, 'YlOrRd')[c(2:6)]
-
+fill_scale <- RColorBrewer::brewer.pal(6, 'YlOrRd')[c(2:6)]
 
 drought_labels <- tribble(
   ~drought_lvl, ~drought_desc,
@@ -116,8 +102,13 @@ drought_labels <- tribble(
 )
 
 
+# create geofacet plot
+
 geo_facets <- drought_import %>% 
   pivot_longer(cols = c(none:d4), names_to = 'drought_lvl', values_to = 'area_pct') %>%
+  
+  # this identifies the highest drought level with at least 10% coverage
+  # and calculates cumulative totals of area covered
   
   mutate(drought_yes = if_else(area_pct > 10, 1, 0)) %>% 
   mutate(drought_lvl_num = case_when(drought_lvl == "none" ~ 0,
@@ -140,6 +131,9 @@ geo_facets <- drought_import %>%
   slice_max(drought_lvl_num) %>% ungroup() %>% group_by(state_abb, year, drought_lvl_num) %>% summarise(total = n()) %>%
   
   filter(year > 2009) %>%   left_join(., state_lookup) %>% 
+  
+  # ggplot
+  
   ggplot(aes(x = year, y = total, fill = fct_rev(factor(drought_lvl_num)))) +
   geom_col(width = 1, size = 0.2, color = "white") +
   
@@ -171,20 +165,19 @@ geo_facets <- drought_import %>%
   )) +
   coord_cartesian(clip = "off")
 
+# read in national drought data
 
 national_droughts <- read_csv(here::here('US Droughts (20-07-2021)', 'national_droughts_data_1.csv')) %>% janitor::clean_names() %>% 
   pivot_longer(cols = c(none:d4), names_to = 'drought_lvl', values_to = 'area_pct') %>% 
   mutate(year = year(valid_start)) %>% 
-  
   group_by(year) %>% arrange(valid_start) %>% 
   mutate(year_start = if_else(row_number() == 1, 1, NA_real_),
          year_start_break = if_else(year_start == 1, paste0(year_start, "_", year), NA_character_)) %>% 
   ungroup() 
 
 
+# create area plot of national data
 
-
-# filter so that starts at 2011
 area_plot <- 
   
   national_droughts %>% 
@@ -202,7 +195,6 @@ area_plot <-
     expand = c(0.001,0.001)
                ) +
     scale_y_continuous(expand = c(0,0), limits = c(0,1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = scales::percent) +
-  #theme_void() +
   labs(subtitle = "Percentage of entire USA land area affected:", x = NULL, y = NULL) +
   theme(legend.position = "none", 
         axis.line.x  = element_line(colour = light_grey, size = 0.75),
@@ -219,11 +211,10 @@ area_plot <-
         panel.grid.minor = element_blank(),
         plot.subtitle = element_text(colour = grey, family = font_light, #face = "bold", 
                                      size = 22, hjust = 0.5, vjust = 0,
-                                     margin = margin(-15,0,20,0))
-        #panel.ontop = TRUE
-  ) +
+                                     margin = margin(-15,0,20,0))) +
   coord_cartesian(clip = "off", xlim = c(as_date("2010-01-05"), as_date("2020-12-29")))
 
+# assemble plot
 
 layout <- "
 A
@@ -245,16 +236,14 @@ plot <- geo_facets / area_plot + plot_layout(design = layout) +
         plot.caption = element_text(colour = grey, family = font_light, size = 14, hjust = 0.5),
         plot.margin = unit(c(5,8,5,2), "mm"))
 
-
-
 ggsave(filename = "us_droughts_export.png",
        plot = plot, path = here::here("US Droughts (20-07-2021)"),
        width = 20, height = 16)
 
 # save to temp plots file
-ggsave(filename =  paste0("temp-", format(Sys.time(), "%Y%m%d_%H%M%S"), ".png"), 
-       plot = plot,
-       device = NULL, path = here::here("Temp plots"),
-       dpi = 320, width = 20, height = 16)
+# ggsave(filename =  paste0("temp-", format(Sys.time(), "%Y%m%d_%H%M%S"), ".png"), 
+#       plot = plot,
+#       device = NULL, path = here::here("Temp plots"),
+#       dpi = 320, width = 20, height = 16)
 
 
